@@ -1,0 +1,4 @@
+export const filtersCsvDataText = `Filter,Value
+Search type,Web
+Date,Last 3 months
+`;
