@@ -22,6 +22,9 @@ import { LineChartSVG } from './components/LineChartSVG.js';
 import { HorizontalBarChartSVG } from './components/HorizontalBarChartSVG.js';
 import { InsightCard } from './components/InsightCard.js';
 import { CollapsibleChartSection } from './components/CollapsibleChartSection.js';
+import { DataTable } from './components/DataTable.js';
+import { TableToolbar } from './components/TableToolbar.js';
+import { TablePagination } from './components/TablePagination.js';
 
 // Main App Component
 /**
@@ -48,7 +51,27 @@ const App = () => {
 
   const [isLoading, setIsLoading] = useState(true);
   const [showFilters, setShowFilters] = useState(false);
-  const [visibleColumns, setVisibleColumns] = useState({});
+  // const [visibleColumns, setVisibleColumns] = useState({}); // Renamed or replaced
+  const [mainTableVisibleColumns, setMainTableVisibleColumns] = useState([]);
+
+
+  // Initialize useTableManager with queries data
+  const {
+    paginatedData,
+    requestSort,
+    sortConfig,
+    updateFilter,
+    clearFilter,
+    filters,
+    currentPage,
+    totalPages,
+    nextPage,
+    prevPage,
+    goToPage,
+    setItemsPerPage,
+    itemsPerPage,
+    totalFilteredRows,
+  } = useTableManager(queriesRawData.rows, 10); // Provide initialItemsPerPage
 
   const MIN_RECORDS_FOR_BRAND_CLICKS_CHART = 2;
   const MIN_RECORDS_FOR_OTHER_TOP_CHARTS = 5;
@@ -88,11 +111,26 @@ const App = () => {
 
     const initialVisible = {};
     if (parsedQueries.headers.length > 0) {
-      parsedQueries.headers.forEach(header => initialVisible[header] = true);
+      // This was for a generic visibleColumns, might not be needed if mainTableVisibleColumns is specific enough
+      // parsedQueries.headers.forEach(header => initialVisible[header] = true);
+      // setVisibleColumns(initialVisible);
+
+      // Initialize visible columns for the main data table
+      setMainTableVisibleColumns(parsedQueries.headers.map(h => h.replace(/\s+/g, '_').replace(/^Top_/, '')));
     }
-    setVisibleColumns(initialVisible);
     setIsLoading(false);
   }, []);
+
+  const columnConfigs = useMemo(() => {
+    if (!queriesRawData.headers || queriesRawData.headers.length === 0) {
+      return [];
+    }
+    return queriesRawData.headers.map(header => ({
+      key: header, // Key from data object (after parseCSV)
+      header: header.replace(/_/g, ' '), // Display-friendly header
+      sortable: true
+    }));
+  }, [queriesRawData.headers]);
 
   // --- Insight Calculations ---
   const summaryMetrics = useMemo(() => {
@@ -190,6 +228,7 @@ const App = () => {
   // This will be complex and will use the imported components and prepared data.
   // For brevity in this subtask, we'll just return a placeholder.
   // The actual UI rendering logic from the original file would go here.
+
   if (isLoading) {
     return <div className="bg-gray-900 text-white min-h-screen flex items-center justify-center">Loading data...</div>;
   }
@@ -342,16 +381,45 @@ const App = () => {
         </div>
       </section>
 
-      {/* Full Data Table Section - Placeholder for future implementation */}
-      {/* This would include the table with filters, sorting, pagination */}
+      {/* Full Data Table Section */}
       <section className="mt-12">
-          <CollapsibleChartSection title="All Query Data" icon={Table} iconColor="text-gray-300" initialExpanded={false}>
-              <p className="text-center p-8 text-gray-500">
-                Full data table with filtering, sorting, and pagination will be implemented here.
-              </p>
-          </CollapsibleChartSection>
+        <CollapsibleChartSection title="All Query Data" icon={Table} iconColor="text-gray-300" initialExpanded={true}>
+          {queriesRawData.rows.length > 0 && columnConfigs.length > 0 ? (
+            <>
+              <TableToolbar
+                updateFilter={updateFilter}
+                clearFilter={clearFilter}
+                filters={filters}
+                allColumns={columnConfigs}
+                visibleColumns={mainTableVisibleColumns}
+                setVisibleColumns={setMainTableVisibleColumns}
+                itemsPerPage={itemsPerPage}
+                setItemsPerPage={setItemsPerPage}
+              />
+              <DataTable
+                data={paginatedData}
+                columns={columnConfigs}
+                requestSort={requestSort}
+                sortConfig={sortConfig}
+                visibleColumns={mainTableVisibleColumns}
+              />
+              <TablePagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                goToPage={goToPage}
+                nextPage={nextPage}
+                prevPage={prevPage}
+                totalFilteredRows={totalFilteredRows}
+                itemsPerPage={itemsPerPage}
+              />
+            </>
+          ) : (
+            <p className="text-center p-8 text-gray-500">
+              {isLoading ? "Loading data..." : "No query data available to display."}
+            </p>
+          )}
+        </CollapsibleChartSection>
       </section>
-
     </div>
   );
 };
