@@ -29,6 +29,8 @@ import { DataTable } from './components/DataTable.js';
 import { TableToolbar } from './components/TableToolbar.js';
 import { TablePagination } from './components/TablePagination.js';
 import { ScatterPlotSVG } from './components/ScatterPlotSVG.js';
+import { Modal } from './components/Modal.js';
+import { FilterBreadcrumbs } from './components/FilterBreadcrumbs.js';
 
 // Main App Component
 /**
@@ -58,6 +60,8 @@ const App = () => {
   // const [visibleColumns, setVisibleColumns] = useState({}); // Renamed or replaced
   const [mainTableVisibleColumns, setMainTableVisibleColumns] = useState([]);
   const [activeChartFilter, setActiveChartFilter] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalDetails, setModalDetails] = useState({ title: '', content: null });
 
 
   // Initialize useTableManager with queries data
@@ -152,9 +156,42 @@ const App = () => {
   };
 
   const handleGenericChartClick = (item, chartName) => {
-    console.log(`Clicked item from ${chartName}: `, item);
-    setActiveChartFilter(`From ${chartName}: ${item.name || item.Date || item.Device || item.pages}`);
-    // No direct filtering on main table for these as per plan
+    let title = `Details for ${chartName}`;
+    let content = (
+      <div className="space-y-2 text-sm">
+        {Object.entries(item).map(([key, value]) => (
+          <div key={key}>
+            <span className="font-semibold text-gray-400">{key.replace(/_/g, ' ').replace(/\b(\w)/g, s => s.toUpperCase())}: </span>
+            <span className="text-gray-200">{typeof value === 'number' ? value.toLocaleString() : String(value)}</span>
+          </div>
+        ))}
+      </div>
+    );
+
+    // Customize title/content based on chartName if needed
+    if (chartName === 'Time Trend' && item.Date) {
+      // Ensure item.Date is a Date object or parseable string before calling toLocaleDateString
+      const dateValue = item.Date instanceof Date ? item.Date : new Date(item.Date);
+      title = `Details for Date: ${dateValue.toLocaleDateString()}`;
+    } else if (chartName === 'Device Breakdown' && item.Device) {
+      title = `Details for Device: ${item.Device}`;
+    } else if (chartName === 'Top Pages' && item.pages) {
+      title = `Details for Page: ${item.pages}`;
+    } else if (item.name) {
+       title = `Details for: ${item.name}`;
+    }
+
+    setModalDetails({ title, content });
+    setIsModalOpen(true);
+    // setActiveChartFilter(`Details for ${chartName}: ${item.name || item.Date || item.Device || item.pages}`);
+  };
+
+  const clearActiveChartFilter = () => {
+    setActiveChartFilter(null);
+    // If the chart filter also applied a table filter (e.g., query charts), clear that too.
+    if (activeChartFilter && activeChartFilter.startsWith("Query: ")) {
+      clearFilter('queries'); // 'queries' is the key used for query chart filtering on the table.
+    }
   };
 
   // --- Insight Calculations ---
@@ -437,22 +474,16 @@ const App = () => {
       {/* Full Data Table Section */}
       <section className="mt-12" id="allQueryDataSection">
         <CollapsibleChartSection title="All Query Data" icon={Table} iconColor="text-gray-300" initialExpanded={true}>
-          {activeChartFilter && (
-            <div className="mb-2 p-2 bg-yellow-500/20 text-yellow-300 rounded-md text-sm">
-              Filtering by: {activeChartFilter}{' '}
-              <button
-                onClick={() => {
-                  clearFilter('queries');
-                  setActiveChartFilter(null);
-                }}
-                className="ml-2 text-yellow-500 hover:text-yellow-400 underline"
-              >
-                Clear
-              </button>
-            </div>
-          )}
+          {/* Remove the old activeChartFilter display here, FilterBreadcrumbs handles it */}
           {queriesRawData.rows.length > 0 && columnConfigs.length > 0 ? (
             <>
+              <FilterBreadcrumbs
+                tableFilters={filters}
+                activeChartFilter={activeChartFilter}
+                clearTableFilter={clearFilter}
+                clearChartFilter={clearActiveChartFilter}
+                columnConfigs={columnConfigs}
+              />
               <TableToolbar
                 updateFilter={updateFilter}
                 clearFilter={clearFilter}
@@ -487,6 +518,14 @@ const App = () => {
           )}
         </CollapsibleChartSection>
       </section>
+
+      <Modal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        title={modalDetails.title}
+      >
+        {modalDetails.content}
+      </Modal>
     </div>
   );
 };
