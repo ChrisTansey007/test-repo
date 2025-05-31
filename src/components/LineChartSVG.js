@@ -20,6 +20,7 @@ import { TooltipSVG } from './TooltipSVG';
  * @param {number} [props.minRecordsForChart=5] - The minimum number of data records required to render the chart.
  *                                               A minimum of 2 is always enforced for line charts.
  *                                               If data length is less than this, a "Not enough data" message is shown.
+ * @param {Function} [props.onItemClick] - Optional callback function when a data point is clicked. Receives the data item.
  * @returns {JSX.Element} The rendered line chart component or a message if data is insufficient.
  */
 export const LineChartSVG = ({
@@ -32,7 +33,8 @@ export const LineChartSVG = ({
     width = 400,
     height = 300,
     textColor = "#A0AEC0",
-    minRecordsForChart = 5
+    minRecordsForChart = 5,
+    onItemClick // New prop
 }) => {
     const [tooltip, setTooltip] = useState({ visible: false, content: null, x: 0, y: 0 });
     const chartContainerRef = useRef(null);
@@ -130,7 +132,11 @@ export const LineChartSVG = ({
                     const y1 = getY(d[val1Key]);
                     const y2 = getY(d[val2Key]);
                     return (
-                        <g key={`point-group-${i}`}>
+                        <g
+                          key={`point-group-${i}`}
+                          onClick={() => onItemClick && onItemClick(d)} // Call onItemClick with the data point 'd'
+                          style={onItemClick ? { cursor: 'pointer' } : {}} // Add cursor style
+                        >
                             {/* Larger invisible circles for easier mouseover */}
                             <circle cx={x} cy={y1} r="6" fill="transparent" onMouseMove={(e) => handleMouseMove(e, d, val1Key)} onMouseLeave={handleMouseLeave} />
                             <circle cx={x} cy={y2} r="6" fill="transparent" onMouseMove={(e) => handleMouseMove(e, d, val2Key)} onMouseLeave={handleMouseLeave} />

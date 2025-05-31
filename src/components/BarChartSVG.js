@@ -19,6 +19,7 @@ import { TooltipSVG } from './TooltipSVG';
  *                                             and the parent div will allow horizontal scrolling. If false, bars might become very thin if many are present.
  * @param {number} [props.minRecordsForChart=5] - The minimum number of data records required to render the chart.
  *                                               If data length is less than this, a "Not enough data" message is shown.
+ * @param {Function} [props.onItemClick] - Optional callback function when a bar item is clicked. Receives the data item.
  * @returns {JSX.Element} The rendered bar chart component or a message if data is insufficient.
  */
 export const BarChartSVG = ({
@@ -30,7 +31,8 @@ export const BarChartSVG = ({
     barColor = "#63B3ED",
     textColor = "#A0AEC0",
     isScrollable = false,
-    minRecordsForChart = 5
+    minRecordsForChart = 5,
+    onItemClick // New prop
 }) => {
   const [tooltip, setTooltip] = useState({ visible: false, content: null, x: 0, y: 0 });
   const chartContainerRef = useRef(null);
@@ -119,7 +121,13 @@ export const BarChartSVG = ({
           const label = (item[nameKey] || '').toString();
 
           return (
-            <g key={index} onMouseMove={(e) => handleMouseMove(e, item)} onMouseLeave={handleMouseLeave}>
+            <g
+              key={index}
+              onMouseMove={(e) => handleMouseMove(e, item)}
+              onMouseLeave={handleMouseLeave}
+              onClick={() => onItemClick && onItemClick(item)} // Call onItemClick with the item data
+              style={onItemClick ? { cursor: 'pointer' } : {}} // Add cursor style
+            >
               <rect
                 x={x}
                 y={y}

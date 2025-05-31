@@ -23,6 +23,7 @@ import { TooltipSVG } from './TooltipSVG';
  * @param {number} [props.topN=15] - The maximum number of top items to display in the chart, sorted by `valueKey`.
  * @param {number} [props.minRecordsForChart=5] - The minimum number of data records (after filtering for `valueKey > 0`)
  *                                               required to render the chart. If data length is less, a message is shown.
+ * @param {Function} [props.onItemClick] - Optional callback function when a bar item is clicked. Receives the data item.
  * @returns {JSX.Element} The rendered horizontal bar chart or a message if data is insufficient.
  */
 export const HorizontalBarChartSVG = ({
@@ -35,7 +36,8 @@ export const HorizontalBarChartSVG = ({
     textColor = "#A0AEC0",
     isScrollable = false,
     topN = 15,
-    minRecordsForChart = 5
+    minRecordsForChart = 5,
+    onItemClick // New prop
 }) => {
     const [tooltip, setTooltip] = useState({ visible: false, content: null, x: 0, y: 0 });
     const chartContainerRef = useRef(null);
@@ -120,7 +122,13 @@ export const HorizontalBarChartSVG = ({
                     if (label.length > 25) label = label.substring(0, 22) + '...'; // Truncate long labels
 
                     return (
-                        <g key={index} onMouseMove={(e) => handleMouseMove(e, item)} onMouseLeave={handleMouseLeave}>
+                        <g
+                            key={index}
+                            onMouseMove={(e) => handleMouseMove(e, item)}
+                            onMouseLeave={handleMouseLeave}
+                            onClick={() => onItemClick && onItemClick(item)} // Call onItemClick with the item data
+                            style={onItemClick ? { cursor: 'pointer' } : {}} // Add cursor style
+                        >
                             {/* Y Axis Label for each bar */}
                             <text x={padding.left - 8} y={yPos + barHeightUser / 2 + 3} fill={textColor} fontSize="9" textAnchor="end" title={item[nameKey] /* Show full name on hover */}>
                                 {label}

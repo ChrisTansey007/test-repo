@@ -53,6 +53,7 @@ const App = () => {
   const [showFilters, setShowFilters] = useState(false);
   // const [visibleColumns, setVisibleColumns] = useState({}); // Renamed or replaced
   const [mainTableVisibleColumns, setMainTableVisibleColumns] = useState([]);
+  const [activeChartFilter, setActiveChartFilter] = useState(null);
 
 
   // Initialize useTableManager with queries data
@@ -131,6 +132,23 @@ const App = () => {
       sortable: true
     }));
   }, [queriesRawData.headers]);
+
+  const handleQueryChartClick = (item) => {
+    if (item && item.name) {
+      updateFilter('queries', item.name);
+      setActiveChartFilter(`Query: "${item.name}"`);
+      const tableSection = document.getElementById('allQueryDataSection');
+      if (tableSection) {
+        tableSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }
+  };
+
+  const handleGenericChartClick = (item, chartName) => {
+    console.log(`Clicked item from ${chartName}: `, item);
+    setActiveChartFilter(`From ${chartName}: ${item.name || item.Date || item.Device || item.pages}`);
+    // No direct filtering on main table for these as per plan
+  };
 
   // --- Insight Calculations ---
   const summaryMetrics = useMemo(() => {
@@ -270,6 +288,7 @@ const App = () => {
             val2Key="Impressions"
             width={550} height={350}
             minRecordsForChart={MIN_RECORDS_FOR_OTHER_TOP_CHARTS}
+            onItemClick={(item) => handleGenericChartClick(item, 'Time Trend')}
           />
         </CollapsibleChartSection>
 
@@ -282,6 +301,7 @@ const App = () => {
                 width={550} height={350}
                 barColor="#48BB78"
                 minRecordsForChart={MIN_RECORDS_FOR_OTHER_TOP_CHARTS}
+                onItemClick={(item) => handleGenericChartClick(item, 'Device Breakdown')}
             />
         </CollapsibleChartSection>
 
@@ -296,6 +316,7 @@ const App = () => {
                 topN={15}
                 isScrollable={true}
                 minRecordsForChart={MIN_RECORDS_FOR_OTHER_TOP_CHARTS}
+                onItemClick={(item) => handleGenericChartClick(item, 'Top Pages')}
             />
         </CollapsibleChartSection>
 
@@ -309,6 +330,7 @@ const App = () => {
             barColor="#4FD1C5"
             isScrollable={true}
             minRecordsForChart={MIN_RECORDS_FOR_BRAND_CLICKS_CHART}
+            onItemClick={handleQueryChartClick}
           />
         </CollapsibleChartSection>
 
@@ -322,6 +344,7 @@ const App = () => {
             barColor="#F6AD55"
             isScrollable={true}
             minRecordsForChart={MIN_RECORDS_FOR_OTHER_TOP_CHARTS}
+            onItemClick={handleQueryChartClick}
           />
         </CollapsibleChartSection>
 
@@ -335,6 +358,7 @@ const App = () => {
             barColor="#F687B3"
             isScrollable={true}
             minRecordsForChart={MIN_RECORDS_FOR_OTHER_TOP_CHARTS}
+            onItemClick={handleQueryChartClick}
           />
         </CollapsibleChartSection>
       </div>
@@ -382,8 +406,22 @@ const App = () => {
       </section>
 
       {/* Full Data Table Section */}
-      <section className="mt-12">
+      <section className="mt-12" id="allQueryDataSection">
         <CollapsibleChartSection title="All Query Data" icon={Table} iconColor="text-gray-300" initialExpanded={true}>
+          {activeChartFilter && (
+            <div className="mb-2 p-2 bg-yellow-500/20 text-yellow-300 rounded-md text-sm">
+              Filtering by: {activeChartFilter}{' '}
+              <button
+                onClick={() => {
+                  clearFilter('queries');
+                  setActiveChartFilter(null);
+                }}
+                className="ml-2 text-yellow-500 hover:text-yellow-400 underline"
+              >
+                Clear
+              </button>
+            </div>
+          )}
           {queriesRawData.rows.length > 0 && columnConfigs.length > 0 ? (
             <>
               <TableToolbar
