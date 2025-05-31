@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useRef } from 'react';
 import { TooltipSVG } from './TooltipSVG';
+import { chartConfig } from '../config/appConfig.js';
 
 // --- New Horizontal Bar Chart SVG Component (unchanged) ---
 /**
@@ -30,14 +31,14 @@ export const HorizontalBarChartSVG = ({
     data,
     valueKey,
     nameKey,
-    width = 400,
-    height = 300,
-    barColor = "#A78BFA",
-    textColor = "#A0AEC0",
+    width = chartConfig.dimensions.defaultWidth,
+    height = chartConfig.dimensions.defaultHeight,
+    barColor = chartConfig.colors.horizontalBarChart,
+    textColor = chartConfig.colors.text,
     isScrollable = false,
-    topN = 15,
-    minRecordsForChart = 5,
-    onItemClick // New prop
+    topN = 15, // This could be moved to config if desired, but often specific per chart instance
+    minRecordsForChart = chartConfig.defaultMinRecords,
+    onItemClick
 }) => {
     const [tooltip, setTooltip] = useState({ visible: false, content: null, x: 0, y: 0 });
     const chartContainerRef = useRef(null);

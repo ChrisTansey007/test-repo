@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { TooltipSVG } from './TooltipSVG';
+import { chartConfig } from '../config/appConfig.js';
 
 // --- SVG Bar Chart Component (Simplified for single metric) ---
 /**
@@ -26,13 +27,13 @@ export const BarChartSVG = ({
     data,
     dataKey,
     nameKey,
-    width = 400,
-    height = 300,
-    barColor = "#63B3ED",
-    textColor = "#A0AEC0",
+    width = chartConfig.dimensions.defaultWidth,
+    height = chartConfig.dimensions.defaultHeight,
+    barColor = chartConfig.colors.barChart,
+    textColor = chartConfig.colors.text,
     isScrollable = false,
-    minRecordsForChart = 5,
-    onItemClick // New prop
+    minRecordsForChart = chartConfig.defaultMinRecords,
+    onItemClick
 }) => {
   const [tooltip, setTooltip] = useState({ visible: false, content: null, x: 0, y: 0 });
   const chartContainerRef = useRef(null);

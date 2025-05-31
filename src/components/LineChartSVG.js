@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useRef } from 'react';
 import { TooltipSVG } from './TooltipSVG';
+import { chartConfig } from '../config/appConfig.js';
 
 // --- New SVG Line Chart Component (unchanged)---
 /**
@@ -28,13 +29,13 @@ export const LineChartSVG = ({
     dateKey = "Date_val",
     val1Key = "Clicks",
     val2Key = "Impressions",
-    val1Color = "#63B3ED",
-    val2Color = "#4A5568",
-    width = 400,
-    height = 300,
-    textColor = "#A0AEC0",
-    minRecordsForChart = 5,
-    onItemClick // New prop
+    val1Color = chartConfig.colors.lineChartVal1,
+    val2Color = chartConfig.colors.lineChartVal2,
+    width = chartConfig.dimensions.defaultWidth,
+    height = chartConfig.dimensions.defaultHeight,
+    textColor = chartConfig.colors.text,
+    minRecordsForChart = chartConfig.defaultMinRecords,
+    onItemClick
 }) => {
     const [tooltip, setTooltip] = useState({ visible: false, content: null, x: 0, y: 0 });
     const chartContainerRef = useRef(null);

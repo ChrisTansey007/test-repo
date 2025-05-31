@@ -15,6 +15,9 @@ import { parseCSV } from './utils/parseCSV.js';
 // Hook Imports
 import { useTableManager } from './hooks/useTableManager.js';
 
+// Config Imports
+import { chartConfig, tableConfig } from './config/appConfig.js';
+
 // Component Imports
 import { TooltipSVG } from './components/TooltipSVG.js';
 import { BarChartSVG } from './components/BarChartSVG.js';
@@ -25,6 +28,7 @@ import { CollapsibleChartSection } from './components/CollapsibleChartSection.js
 import { DataTable } from './components/DataTable.js';
 import { TableToolbar } from './components/TableToolbar.js';
 import { TablePagination } from './components/TablePagination.js';
+import { ScatterPlotSVG } from './components/ScatterPlotSVG.js';
 
 // Main App Component
 /**
@@ -72,8 +76,11 @@ const App = () => {
     setItemsPerPage,
     itemsPerPage,
     totalFilteredRows,
-  } = useTableManager(queriesRawData.rows, 10); // Provide initialItemsPerPage
+  } = useTableManager(queriesRawData.rows, tableConfig.defaultItemsPerPage);
 
+  // Note: MIN_RECORDS_FOR_BRAND_CLICKS_CHART and MIN_RECORDS_FOR_OTHER_TOP_CHARTS
+  // are kept as is for now, as they represent specific logic distinct from
+  // chartConfig.defaultMinRecords. They could be moved to config if desired.
   const MIN_RECORDS_FOR_BRAND_CLICKS_CHART = 2;
   const MIN_RECORDS_FOR_OTHER_TOP_CHARTS = 5;
 
@@ -286,7 +293,7 @@ const App = () => {
             dateKey="Date"
             val1Key="Clicks"
             val2Key="Impressions"
-            width={550} height={350}
+            // width and height use component defaults from chartConfig
             minRecordsForChart={MIN_RECORDS_FOR_OTHER_TOP_CHARTS}
             onItemClick={(item) => handleGenericChartClick(item, 'Time Trend')}
           />
@@ -298,8 +305,8 @@ const App = () => {
                 data={devicesRawData.rows}
                 dataKey="Clicks"
                 nameKey="Device"
-                width={550} height={350}
-                barColor="#48BB78"
+                // width and height use component defaults
+                barColor={chartConfig.colors.deviceDesktop} // Example override
                 minRecordsForChart={MIN_RECORDS_FOR_OTHER_TOP_CHARTS}
                 onItemClick={(item) => handleGenericChartClick(item, 'Device Breakdown')}
             />
@@ -311,8 +318,8 @@ const App = () => {
                 data={pagesRawData.rows}
                 valueKey="Clicks"
                 nameKey="pages"
-                width={550} height={350}
-                barColor="#A78BFA"
+                // width and height use component defaults
+                // barColor uses component default (chartConfig.colors.horizontalBarChart)
                 topN={15}
                 isScrollable={true}
                 minRecordsForChart={MIN_RECORDS_FOR_OTHER_TOP_CHARTS}
@@ -326,8 +333,7 @@ const App = () => {
             data={topBrandQueriesByClicks}
             dataKey="Clicks"
             nameKey="name"
-            width={550} height={350}
-            barColor="#4FD1C5"
+            barColor={chartConfig.colors.brandQueryClicks}
             isScrollable={true}
             minRecordsForChart={MIN_RECORDS_FOR_BRAND_CLICKS_CHART}
             onItemClick={handleQueryChartClick}
@@ -340,8 +346,7 @@ const App = () => {
             data={topNonBrandQueriesByClicks}
             dataKey="Clicks"
             nameKey="name"
-            width={550} height={350}
-            barColor="#F6AD55"
+            barColor={chartConfig.colors.nonBrandQueryClicks}
             isScrollable={true}
             minRecordsForChart={MIN_RECORDS_FOR_OTHER_TOP_CHARTS}
             onItemClick={handleQueryChartClick}
@@ -354,12 +359,36 @@ const App = () => {
             data={topBrandQueriesByImpressions}
             dataKey="Impressions"
             nameKey="name"
-            width={550} height={350}
-            barColor="#F687B3"
+            barColor={chartConfig.colors.brandQueryImpressions}
             isScrollable={true}
             minRecordsForChart={MIN_RECORDS_FOR_OTHER_TOP_CHARTS}
             onItemClick={handleQueryChartClick}
           />
+        </CollapsibleChartSection>
+
+        {/* Scatter Plot: CTR vs. Position (Bubble size by Impressions) */}
+        <CollapsibleChartSection
+          title="CTR vs. Position (Bubble: Impressions)"
+          icon={TrendingUp}
+          iconColor="text-indigo-400" // Corresponds to scatterPlot color in config potentially
+          initialExpanded={true}
+        >
+          {queriesRawData.rows && queriesRawData.rows.length > 0 ? (
+            <ScatterPlotSVG
+              data={queriesRawData.rows}
+              xKey="Position"
+              yKey="CTR"
+              bubbleKey="Impressions"
+              nameKey="queries"
+              xAxisLabel="Average Position"
+              yAxisLabel="Click-Through Rate (%)"
+              // pointColor, width, height use component defaults from chartConfig
+              onItemClick={handleQueryChartClick}
+              minRecordsForChart={10} // Specific override
+            />
+          ) : (
+            <p className="text-center p-8 text-gray-500">Not enough data for scatter plot.</p>
+          )}
         </CollapsibleChartSection>
       </div>
 

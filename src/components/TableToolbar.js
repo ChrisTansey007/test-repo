@@ -1,5 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Filter, XCircle, Eye } from 'lucide-react';
+import { tableConfig } from '../config/appConfig.js';
+import { debounce } from '../utils/debounce.js';
 
 /**
  * TableToolbar Component
@@ -34,6 +36,12 @@ export const TableToolbar = ({
   });
   const [showColumnSelector, setShowColumnSelector] = useState(false);
 
+  const debouncedUpdateFilter = useMemo(() => {
+    return debounce((key, value) => {
+      updateFilter(key, value);
+    }, 300); // 300ms delay
+  }, [updateFilter]);
+
   useEffect(() => {
     setTextFilter(filters['queries'] || '');
     setNumericFilters({
@@ -45,33 +53,36 @@ export const TableToolbar = ({
   }, [filters]);
 
   const handleTextFilterChange = (e) => {
-    setTextFilter(e.target.value);
-    if (e.target.value === '') {
-      clearFilter('queries');
+    const value = e.target.value;
+    setTextFilter(value); // Update local state immediately
+    if (value === '') {
+      clearFilter('queries'); // Clear immediately if empty
     } else {
-      updateFilter('queries', e.target.value);
+      debouncedUpdateFilter('queries', value); // Debounce the actual filter update
     }
   };
 
   const handleNumericFilterChange = (columnKey, rangeKey, value) => {
-    const updatedVal = value === '' ? '' : parseFloat(value);
-    const newNumericFilters = {
+    // Local state for input value (string)
+    const newNumericFiltersState = {
       ...numericFilters,
       [columnKey]: {
         ...numericFilters[columnKey],
-        [rangeKey]: updatedVal,
+        [rangeKey]: value, // Keep input value as string for controlled component
       },
     };
-    setNumericFilters(newNumericFilters);
+    setNumericFilters(newNumericFiltersState); // Update local state immediately
 
-    const currentFilter = newNumericFilters[columnKey];
-    if (currentFilter.min === '' && currentFilter.max === '') {
-      clearFilter(columnKey);
+    // Value to be sent to the hook (parsed numbers or null)
+    const filterValueForHook = {
+      min: newNumericFiltersState[columnKey].min !== '' ? parseFloat(newNumericFiltersState[columnKey].min) : null,
+      max: newNumericFiltersState[columnKey].max !== '' ? parseFloat(newNumericFiltersState[columnKey].max) : null,
+    };
+
+    if (filterValueForHook.min === null && filterValueForHook.max === null) {
+      clearFilter(columnKey); // Clear immediately
     } else {
-      updateFilter(columnKey, {
-        min: currentFilter.min !== '' ? currentFilter.min : null,
-        max: currentFilter.max !== '' ? currentFilter.max : null
-      });
+      debouncedUpdateFilter(columnKey, filterValueForHook); // Debounce the actual filter update
     }
   };
 
@@ -137,7 +148,7 @@ export const TableToolbar = ({
             onChange={(e) => setItemsPerPage(Number(e.target.value))}
             className="px-3 py-2 bg-gray-700 text-gray-200 border border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-yellow-500 focus:border-yellow-500 sm:text-sm"
           >
-            {[10, 25, 50, 100].map(size => (
+            {tableConfig.itemsPerPageOptions.map(size => (
               <option key={size} value={size}>{size} per page</option>
             ))}
           </select>
