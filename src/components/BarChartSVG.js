@@ -2,6 +2,25 @@ import React, { useState, useRef } from 'react';
 import { TooltipSVG } from './TooltipSVG';
 
 // --- SVG Bar Chart Component (Simplified for single metric) ---
+/**
+ * Renders an SVG-based bar chart.
+ * This component displays vertical bars, typically used for showing magnitudes of different categories.
+ * It includes features like tooltips on hover, customizable colors, and optional scrolling for many bars.
+ *
+ * @param {Object} props - The component's props.
+ * @param {Object[]} props.data - An array of data objects to be plotted. Each object should contain at least a name key and a data key.
+ * @param {string} props.dataKey - The key in each data object that holds the numerical value for the bar height.
+ * @param {string} props.nameKey - The key in each data object that holds the name/label for each bar (x-axis category).
+ * @param {number} [props.width=400] - The total width of the chart component in pixels.
+ * @param {number} [props.height=300] - The total height of the chart component in pixels.
+ * @param {string} [props.barColor="#63B3ED"] - The fill color for the bars (hex, rgb, or color name).
+ * @param {string} [props.textColor="#A0AEC0"] - The color for text elements like axes labels and ticks.
+ * @param {boolean} [props.isScrollable=false] - If true, the SVG width will expand to accommodate all bars with a minimum width,
+ *                                             and the parent div will allow horizontal scrolling. If false, bars might become very thin if many are present.
+ * @param {number} [props.minRecordsForChart=5] - The minimum number of data records required to render the chart.
+ *                                               If data length is less than this, a "Not enough data" message is shown.
+ * @returns {JSX.Element} The rendered bar chart component or a message if data is insufficient.
+ */
 export const BarChartSVG = ({
     data,
     dataKey,

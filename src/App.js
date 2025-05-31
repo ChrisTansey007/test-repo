@@ -24,6 +24,20 @@ import { InsightCard } from './components/InsightCard.js';
 import { CollapsibleChartSection } from './components/CollapsibleChartSection.js';
 
 // Main App Component
+/**
+ * The main application component for the Search Performance Dashboard.
+ * It orchestrates the overall layout and functionality of the dashboard.
+ * Responsibilities include:
+ *  - Loading and parsing initial CSV data for queries, dates, devices, pages, etc.
+ *  - Managing global state such as loading status and visibility of UI elements.
+ *  - Performing calculations and memoizations for derived data (e.g., summary metrics, keyword themes, brand/non-brand query filtering).
+ *  - Rendering the main dashboard structure, including the header, summary metric cards,
+ *    various chart sections (e.g., performance over time, device breakdown, top pages/queries),
+ *    and insight sections (e.g., keyword themes, under-leveraged opportunities).
+ *  - Utilizing custom hooks and components for specific functionalities like table management and chart rendering.
+ *
+ * @returns {JSX.Element} The rendered main application.
+ */
 const App = () => {
   const [queriesRawData, setQueriesRawData] = useState({ headers: [], rows: [] });
   const [datesRawData, setDatesRawData] = useState({ headers: [], rows: [] });

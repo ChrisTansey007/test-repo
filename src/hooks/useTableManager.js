@@ -1,6 +1,48 @@
+/**
+ * @fileoverview This file contains the useTableManager custom React hook,
+ * which encapsulates logic for managing table state such as sorting,
+ * filtering, and pagination.
+ */
+
 import { useState, useMemo } from 'react';
 
 // --- Custom Hook for managing table data (unchanged) ---
+/**
+ * Custom hook to manage table state including sorting, filtering, and pagination.
+ *
+ * @param {Object[]} initialData An array of objects representing the initial dataset for the table.
+ * @param {number} [initialItemsPerPage=10] The initial number of items to display per page.
+ * @returns {{
+ *   paginatedData: Object[],
+ *   requestSort: Function,
+ *   sortConfig: {key: string|null, direction: 'ascending'|'descending'},
+ *   updateFilter: Function,
+ *   clearFilter: Function,
+ *   filters: Object,
+ *   currentPage: number,
+ *   totalPages: number,
+ *   nextPage: Function,
+ *   prevPage: Function,
+ *   goToPage: Function,
+ *   setItemsPerPage: Function,
+ *   itemsPerPage: number,
+ *   totalFilteredRows: number
+ * }} An object containing:
+ *  - `paginatedData`: Array of items for the current page after sorting and filtering.
+ *  - `requestSort`: Function to request sorting by a specific key. Toggles direction on subsequent calls with the same key.
+ *  - `sortConfig`: Object indicating the current sort key and direction.
+ *  - `updateFilter`: Function to set or update a filter for a specific key.
+ *  - `clearFilter`: Function to remove a filter for a specific key.
+ *  - `filters`: Object representing the current active filters.
+ *  - `currentPage`: The current active page number.
+ *  - `totalPages`: The total number of pages based on filtered data and itemsPerPage.
+ *  - `nextPage`: Function to navigate to the next page.
+ *  - `prevPage`: Function to navigate to the previous page.
+ *  - `goToPage`: Function to navigate to a specific page number.
+ *  - `setItemsPerPage`: Function to update the number of items displayed per page.
+ *  - `itemsPerPage`: The current number of items displayed per page.
+ *  - `totalFilteredRows`: The total number of rows after applying filters (but before pagination).
+ */
 export const useTableManager = (initialData, initialItemsPerPage = 10) => {
   const [sortConfig, setSortConfig] = useState({ key: null, direction: 'ascending' });
   const [filters, setFilters] = useState({});
