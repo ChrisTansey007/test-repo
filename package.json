@@ -12,7 +12,9 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "docker:build": "docker build -t react-dashboard-app .",
+    "docker:run": "docker run -p 3000:80 react-dashboard-app"
   },
   "eslintConfig": {
     "extends": [
